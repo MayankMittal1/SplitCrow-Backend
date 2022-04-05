@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 import * as jwt from 'jsonwebtoken'
 import 'dotenv/config'
+import { connect, use } from '../routes/user'
 var key = process.env.KEY
 const userLogin = async (req: Request, res: Response, next: NextFunction) => {
     var password = crypto
@@ -25,7 +26,7 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
         }
         var token
         if (key) {
-            token = jwt.sign(payload, key, { algorithm: 'HS256' })
+            token = jwt.sign(payload, key)
         } else {
             console.log('SECRET KEy not found')
             res.status(401)
@@ -45,26 +46,25 @@ const userSignup = async (req: Request, res: Response, next: NextFunction) => {
         .update(req.body.password)
         .digest('hex')
     var user = await prisma.user.findUnique({
-        where:{
-            email:req.body.email
-        }
+        where: {
+            email: req.body.email,
+        },
     })
-    if(user == null){
+    if (user == null) {
         user = await prisma.user.create({
-            data:{
-                email:req.body.email,
+            data: {
+                email: req.body.email,
                 password: password,
                 Phone: req.body.phone,
                 UPI: req.body.upi,
-                name: req.body.name
-            }
+                name: req.body.name,
+            },
         })
-        res.status(201);
-        res.send("Success");
-    }
-    else{
-        res.status(409);
-        res.send("An user with that username already exists");
+        res.status(201)
+        res.send('Success')
+    } else {
+        res.status(409)
+        res.send('An user with that username already exists')
     }
 }
 export default { userLogin, userSignup }
