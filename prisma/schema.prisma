@@ -13,9 +13,9 @@ datasource db {
 model User {
   id             Int              @id @default(autoincrement())
   name           String           @db.VarChar(100)
-  email          String           @db.VarChar(200)
+  email          String           @db.VarChar(200) @unique
   password       String
-  Phone          Int
+  Phone          String
   UPI            String           @db.VarChar(100)
   Group          Group?           @relation(fields: [groupId], references: [id])
   groupId        Int?
