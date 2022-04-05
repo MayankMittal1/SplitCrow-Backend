@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(100)
+  email          String           @db.VarChar(200)
+  password       String
+  Phone          Int
+  UPI            String           @db.VarChar(100)
+  Group          Group?           @relation(fields: [groupId], references: [id])
+  groupId        Int?
+  Balance        Balance[]
+  Expense        Expense[]
+  ExpenseBalance ExpenseBalance[]
+}
+
+model Group {
+  id      Int       @id @default(autoincrement())
+  name    String    @db.VarChar(100)
+  users   User[]
+  Expense Expense[]
+  Balance Balance[]
+}
+
+model Expense {
+  id       Int              @id @default(autoincrement())
+  group    Group            @relation(fields: [groupId], references: [id])
+  PaidBy   User             @relation(fields: [userId], references: [id])
+  name     String           @db.VarChar(200)
+  Time     DateTime
+  Balances ExpenseBalance[]
+  amount   Float
+  groupId  Int
+  userId   Int
+}
+
+model Balance {
+  id      Int   @id @default(autoincrement())
+  group   Group @relation(fields: [groupId], references: [id])
+  user    User  @relation(fields: [userId], references: [id])
+  balance Float
+  groupId Int
+  userId  Int
+}
+
+model ExpenseBalance {
+  id        Int      @id @default(autoincrement())
+  User      User     @relation(fields: [userId], references: [id])
+  balance   Float
+  Expense   Expense? @relation(fields: [expenseId], references: [id])
+  expenseId Int?
+  userId    Int
+}
