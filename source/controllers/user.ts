@@ -6,7 +6,8 @@ const prisma = new PrismaClient()
 import * as jwt from 'jsonwebtoken'
 import 'dotenv/config'
 import { connect, use } from '../routes/user'
-var key = process.env.KEY
+import { json } from 'body-parser'
+var KEY = process.env.KEY
 const userLogin = async (req: Request, res: Response, next: NextFunction) => {
     var password = crypto
         .createHash('sha256')
@@ -18,15 +19,14 @@ const userLogin = async (req: Request, res: Response, next: NextFunction) => {
             password: password,
         },
     })
-    console.log(user)
     if (user != null) {
         var payload = {
             userId: user.id,
             email: user.email,
         }
         var token
-        if (key) {
-            token = jwt.sign(payload, key)
+        if (KEY) {
+            token = jwt.sign(payload, KEY)
         } else {
             console.log('SECRET KEy not found')
             res.status(401)
@@ -67,4 +67,33 @@ const userSignup = async (req: Request, res: Response, next: NextFunction) => {
         res.send('An user with that username already exists')
     }
 }
-export default { userLogin, userSignup }
+
+const getUserInfo = async (req: Request, res: Response, next: NextFunction) => {
+    var str = req.get('Authorization')
+    try {
+        var decoded
+        if (str && KEY) {
+            decoded = jwt.verify(str, KEY) as jwt.JwtPayload
+        } else {
+            res.status(401)
+            res.send('Bad Token')
+        }
+        var user
+        if (decoded) {
+            user = await prisma.user.findUnique({
+                where: {
+                    email: decoded.email,
+                },
+                include: {
+                    Groups: true,
+                },
+            })
+        }
+        res.status(201)
+        res.send(user)
+    } catch {
+        res.status(401)
+        res.send('Bad Token')
+    }
+}
+export default { userLogin, userSignup, getUserInfo }

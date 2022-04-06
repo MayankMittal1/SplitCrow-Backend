@@ -1,7 +1,8 @@
-import express from 'express';
-import controller from '../controllers/group';
-const router = express.Router();
+import express from 'express'
+import controller from '../controllers/group'
+const router = express.Router()
 
-// router.post('/posts', controller.addPost);
-router.post('/create',controller.createGroup)
-export = router;
+router.post('/create', controller.createGroup)
+router.get('/get/:id', controller.getGroupDetails)
+router.post('/addUser', controller.addUsers)
+export = router
