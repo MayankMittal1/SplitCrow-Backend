@@ -78,22 +78,27 @@ const getUserInfo = async (req: Request, res: Response, next: NextFunction) => {
             res.status(401)
             res.send('Bad Token')
         }
-        var user
-        if (decoded) {
-            user = await prisma.user.findUnique({
-                where: {
-                    email: decoded.email,
-                },
-                include: {
-                    Groups: true,
-                },
-            })
-        }
-        res.status(201)
-        res.send(user)
     } catch {
         res.status(401)
         res.send('Bad Token')
     }
+    var user
+    if (decoded) {
+        user = await prisma.user.findFirst({
+            where: {
+                email: decoded.email,
+            },
+            select:{
+                name:true,
+                password:false,
+                email:true,
+                UPI:true,
+                Phone:true,
+                Groups:true,
+            }
+        })
+    }
+    res.status(201)
+    res.send(user)
 }
 export default { userLogin, userSignup, getUserInfo }

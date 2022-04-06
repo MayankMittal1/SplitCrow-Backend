@@ -100,7 +100,13 @@ const getGroupDetails = async (
                 id: id,
             },
             include: {
-                users: true,
+                users:{
+                    select:{
+                        name:true,
+                        email:true,
+                        Phone:true,
+                    }
+                },
             },
         })
         res.status(201)
