@@ -80,6 +80,7 @@ const addUsers = async (req: Request, res: Response, next: NextFunction) => {
     res.status(200)
     res.send('Success')
 }
+
 const getGroupDetails = async (
     req: Request,
     res: Response,
@@ -117,4 +118,63 @@ const getGroupDetails = async (
     }
 }
 
-export default { createGroup, getGroupDetails, addUsers }
+const addExpense = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    var str = req.get('Authorization')
+    var decoded
+    var balances: { userId: any; balance: any }[] = []
+    try {
+        if (str && KEY) {
+            decoded = jwt.verify(str, KEY) as jwt.JwtPayload
+        } else {
+            res.status(401)
+            res.send('Bad Token')
+        }
+        var grp = await prisma.group.findFirst({
+            where: {
+                id: req.body.groupId,
+            },
+            select: {
+                name: true
+            }
+        })
+        var user = await prisma.user.findFirst({
+            where: {
+                id: req.body.userId,
+            },
+            select: {
+                name: true,
+                email: true,
+                UPI: true
+            }
+        })
+        var expenses: any = req.body.expense
+        expenses.forEach((val: { userId: any; balance: any }) => {
+            balances.push({
+                userId: val.userId,
+                balance: val.balance
+            })
+        })
+        await prisma.expense.create ({
+            data: {
+                groupId: req.body.groupId,
+                userId: req.body.userId,
+                name: req.body.name,
+                amount: req.body.amnt,
+                Balances: {
+                    connect: balances
+                }
+            }
+        })
+        res.status(201)
+        res.send('Success')
+    } catch {
+        res.status(401)
+        res.send('Bad')
+    }
+}
+
+export default { createGroup, getGroupDetails, addUsers, addExpense }
