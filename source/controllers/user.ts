@@ -88,14 +88,15 @@ const getUserInfo = async (req: Request, res: Response, next: NextFunction) => {
             where: {
                 email: decoded.email,
             },
-            select:{
-                name:true,
-                password:false,
-                email:true,
-                UPI:true,
-                Phone:true,
-                Groups:true,
-            }
+            select: {
+                name: true,
+                password: false,
+                email: true,
+                UPI: true,
+                Phone: true,
+                Groups: true,
+                Balance: true,
+            },
         })
     }
     res.status(201)
