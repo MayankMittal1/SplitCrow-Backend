@@ -36,7 +36,7 @@ model Expense {
   group    Group            @relation(fields: [groupId], references: [id])
   PaidBy   User             @relation(fields: [userId], references: [id])
   name     String           @db.VarChar(200)
-  Time     DateTime
+  Time     DateTime         @default(now())
   Balances ExpenseBalance[]
   amount   Float
   groupId  Int
@@ -44,12 +44,13 @@ model Expense {
 }
 
 model Balance {
-  id      Int   @id @default(autoincrement())
   group   Group @relation(fields: [groupId], references: [id])
   user    User  @relation(fields: [userId], references: [id])
-  balance Float
+  balance Float @default(0)
   groupId Int
   userId  Int
+
+  @@id([groupId, userId])
 }
 
 model ExpenseBalance {

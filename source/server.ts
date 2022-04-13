@@ -3,6 +3,7 @@ import express, { Express } from 'express'
 import morgan from 'morgan'
 import userRouter from './routes/user'
 import groupRouter from './routes/group'
+import expenseRouter from './routes/expense'
 import { PrismaClient } from '@prisma/client'
 import bodyParser from 'body-parser'
 const prisma = new PrismaClient()
@@ -31,6 +32,7 @@ router.use((req, res, next) => {
 /** Routes */
 router.use('/user', userRouter)
 router.use('/group', groupRouter)
+router.use('/expense', groupRouter)
 
 /** Error handling */
 router.use((req, res, next) => {
