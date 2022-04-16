@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction, application } from 'express'
 import axios, { AxiosResponse } from 'axios'
 import * as crypto from 'crypto'
-import { PrismaClient, User } from '@prisma/client'
+import { ExpenseBalance, Prisma, PrismaClient, User } from '@prisma/client'
 const prisma = new PrismaClient()
 import * as jwt from 'jsonwebtoken'
 import 'dotenv/config'
@@ -80,6 +80,7 @@ const addUsers = async (req: Request, res: Response, next: NextFunction) => {
     res.status(200)
     res.send('Success')
 }
+
 const getGroupDetails = async (
     req: Request,
     res: Response,
@@ -99,13 +100,31 @@ const getGroupDetails = async (
             where: {
                 id: id,
             },
-            include: {
-                users:{
-                    select:{
-                        name:true,
-                        email:true,
-                        Phone:true,
-                    }
+            select: {
+                name: true,
+                users: {
+                    select: {
+                        name: true,
+                        email: true,
+                    },
+                },
+                Expense: {
+                    select: {
+                        Balances: {
+                            select: {
+                                userId: true,
+                                balance: true,
+                            },
+                        },
+                        PaidBy: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                        Time: true,
+                        amount: true,
+                    },
                 },
             },
         })
@@ -117,4 +136,41 @@ const getGroupDetails = async (
     }
 }
 
-export default { createGroup, getGroupDetails, addUsers }
+const getSettlements = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    var str = req.get('Authorization')
+    try {
+        var decoded
+        if (str && KEY) {
+            decoded = jwt.verify(str, KEY) as jwt.JwtPayload
+        } else {
+            res.status(401)
+            res.send('Bad Token')
+        }
+        var id: number = +req.params.id
+        var group = await prisma.group.findFirst({
+            where: {
+                id: id,
+            },
+            select: {
+                name: true,
+                users: {
+                    select: {
+                        name: true,
+                        email: true,
+                    },
+                },
+                Balance: true
+            },
+        })
+        res.status(201)
+        res.send(group)
+    } catch {
+        res.status(401)
+        res.send('Bad Token')
+    }
+}
+export default { createGroup, getGroupDetails, addUsers, getSettlements }
