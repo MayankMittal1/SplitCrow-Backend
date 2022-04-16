@@ -136,4 +136,41 @@ const getGroupDetails = async (
     }
 }
 
-export default { createGroup, getGroupDetails, addUsers }
+const getSettlements = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    var str = req.get('Authorization')
+    try {
+        var decoded
+        if (str && KEY) {
+            decoded = jwt.verify(str, KEY) as jwt.JwtPayload
+        } else {
+            res.status(401)
+            res.send('Bad Token')
+        }
+        var id: number = +req.params.id
+        var group = await prisma.group.findFirst({
+            where: {
+                id: id,
+            },
+            select: {
+                name: true,
+                users: {
+                    select: {
+                        name: true,
+                        email: true,
+                    },
+                },
+                Balance: true
+            },
+        })
+        res.status(201)
+        res.send(group)
+    } catch {
+        res.status(401)
+        res.send('Bad Token')
+    }
+}
+export default { createGroup, getGroupDetails, addUsers, getSettlements }
