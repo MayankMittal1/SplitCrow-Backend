@@ -166,6 +166,71 @@ const getSettlements = async (
                 Balance: true
             },
         })
+        var give : Array<{int1:number, int2:number}> = []
+        var take : Array<{int1:number, int2:number}> = []
+        //var users: Array<string> = req.body.users
+        var transactions: Array<{from:User|null,to:User|null,amount:number}> = []
+        group?.Balance.forEach((val) => {
+            if(val.balance < 0){
+                give.push({
+                    int1 : -val.balance,
+                    int2 : val.userId
+                })
+            }
+            else{
+                take.push({
+                    int1 : val.balance,
+                    int2 : val.userId
+                })
+            }
+        })
+        give.sort((a,b)=>{
+            return a.int1 - b.int1;
+        })
+        take.sort((a,b)=>{
+            return a.int1 - b.int1;
+        })
+        var p = give.length - 1
+        for(let i = take.length - 1;i>=0;i--){
+            while(take[i].int1 > 0){
+                if(take[i].int1 >= give[p].int1){
+                    take[i].int1 -= give[p].int1
+                    //transaction
+                    transactions.push({
+                        from : await prisma.user.findUnique({
+                            where:{
+                                id: give[p].int2
+                            }
+                        }),
+                        to : await prisma.user.findUnique({
+                            where:{
+                                id: take[i].int2
+                            }
+                        }),
+                        amount : give[p].int1
+                    })
+                    give[p].int1 = 0
+                    p--;
+                }
+                else{
+                    give[p].int1 -= take[i].int1
+                    transactions.push({
+                        from : await prisma.user.findUnique({
+                            where:{
+                                id: give[p].int2
+                            }
+                        }),
+                        to : await prisma.user.findUnique({
+                            where:{
+                                id: take[i].int2
+                            }
+                        }),
+                        amount : take[i].int1
+                    })
+                    take[i].int1 = 0
+                }
+            }
+        }
         res.status(201)
         res.send(group)
     } catch {
